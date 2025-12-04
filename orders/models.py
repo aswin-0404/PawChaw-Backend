@@ -16,7 +16,7 @@ class Order(models.Model):
         ('Processing','Processing'),
         ('Shipped','Shipped'),
         ('Deliverd','Deliverd'),
-        ('Cancelled','Cancelled')
+        ('Cancelled','Cancelled'),
     )
 
     user=models.ForeignKey(Register,on_delete=models.CASCADE,related_name='orders')

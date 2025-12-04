@@ -15,30 +15,21 @@ class CartListview(APIView):
         items=CartItems.objects.filter(user=request.user)
         serializer=Cartserializer(items,many=True)
         return Response(serializer.data)
+    
 
 class CartAddview(APIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    def post(self,request):
-        product_id=request.data.get('product_id')
-        quantity=request.data.get('quantity',1)
+    def post(self, request):
+        serializer = Cartserializer(data=request.data, context={'request': request})
 
-        try:
-            product=Product.objects.get(id=product_id)
-        except Product.DoesNotExist:
-            return Response({"error":"product not found"},status=status.HTTP_404_NOT_FOUND)
-        
-        cart_item,created=CartItems.objects.get_or_create(user=request.user,product=product)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if not created:
-            cart_item.quantity +=int(quantity)
-            cart_item.save()
-        else:
-            cart_item.quantity=quantity
-            cart_item.save()
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message":"succesfully Added to cart!"})
-    
+
 class Deletecartview(APIView):
     permission_classes=[IsAuthenticated]
 
@@ -55,14 +46,18 @@ class Deletecartview(APIView):
 
 class CartUpadateview(APIView):
     permission_classes=[IsAuthenticated]
-    def patch(self,request,item_id):
-        try: 
-            item=CartItems.objects.get(id=item_id,user=request.user)
+
+    def patch(self, request, item_id):
+        try:
+            item = CartItems.objects.get(id=item_id, user=request.user)
         except CartItems.DoesNotExist:
-            return Response({"error":"Not found"},status=status.HTTP_404_NOT_FOUND)
-        
-        qnty=request.data.get("quantity")
-        if qnty is not None:
-            item.quantity=qnty
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        quantity = request.data.get("quantity")
+        if quantity is not None:
+            item.quantity = quantity
             item.save()
-            return Response({"message":"Quantity Updated"})
+            return Response({"message": "Quantity Updated"})
+
+        return Response({"error": "Quantity is required"}, status=status.HTTP_400_BAD_REQUEST)
+

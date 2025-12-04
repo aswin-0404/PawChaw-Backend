@@ -1,14 +1,17 @@
 from rest_framework import serializers
 from .models import Order,OrderItem
 from products.models import Product
+from cart.models import  CartItems
 
 class OrderItemserializer(serializers.ModelSerializer):
+    product=serializers.IntegerField(write_only=True)
     product_name=serializers.CharField(source='product.name',read_only=True)
     product_image=serializers.CharField(source='product.image',read_only=True)
 
     class Meta:
         model=OrderItem
         fields=['id','product','product_name','product_image','quantity','price']
+        
 
 class OrderSerializer(serializers.ModelSerializer):
     items=OrderItemserializer(many=True,read_only=True)
@@ -46,13 +49,18 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             'items'
         ]
 
-        def create(self,validated_data):
-            items_data=validated_data.pop('items')
-            user=self.context['request'].user
+    def create(self,validated_data):
+        items_data=validated_data.pop('items')
+        user=self.context['request'].user
 
-            order=Order.objects.create(user=user,**validated_data)
+        order=Order.objects.create(user=user,**validated_data)
 
-            for items in items_data:
-                OrderItem.objects.create(order=order,**items)
+        for items in items_data:
+            product_id=items.pop('product')
+            product=Product.objects.get(id=product_id)
 
-            return order
+            OrderItem.objects.create(order=order,product=product,**items)
+
+        CartItems.objects.filter(user=user).delete()
+
+        return order 
