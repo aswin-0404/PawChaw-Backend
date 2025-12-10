@@ -44,7 +44,11 @@ INSTALLED_APPS = [
     'cart',
     'wishlist',
     'orders',
+    'admin_panel',
 ]
+
+RAZORPAY_KEY_ID="rzp_test_RnvzmMfDmprZgE"
+RAZORPAY_KEY_SECRET="sQMY6NKF7v91MTz2Yixfx6F9"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
