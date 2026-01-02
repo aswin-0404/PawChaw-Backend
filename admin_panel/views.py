@@ -5,7 +5,7 @@ from orders.models import Order,OrderItem
 from accounts.models import Register
 from rest_framework.views import APIView
 from django.db.models import Count,Sum
-from .serializers import AdminUserManageserializer,Productfetchserializer,EditproductSerializer,ProductAddSerializer,Orderfetchserializer
+from .serializers import AdminUserManageserializer,Productfetchserializer,EditproductSerializer,ProductAddSerializer,Orderfetchserializer,EditOrderSerializer
 from rest_framework.permissions import IsAdminUser
 from django.db.models.functions import TruncMonth
 from products.models import Product
@@ -137,11 +137,12 @@ class OrderFetchview(ListAPIView):
     serializer_class=Orderfetchserializer
     filter_backends=[SearchFilter,OrderingFilter]
 
-    search_fields=['username','email']
+    search_fields=['order__full_name','order__email']
     ordering_fields=['order_date']
-    ordering=['-order_date']
+    ordering = ['-order_date']
 
     queryset=OrderItem.objects.select_related("order","product").values(
+        "id",
         orderid=F("order__id"),
         user_name=F("order__full_name"),
         product_name=F("product__name"),
@@ -159,7 +160,22 @@ class OrderDeleteView(APIView):
         try:
             order=Order.objects.get(id=id)
             order.delete()
+            return Response({"message":"Delted succesfully"},status=status.HTTP_200_OK)
         except Order.DoesNotExist:
             return Response({"message":"order not found"},status=status.HTTP_400_BAD_REQUEST)
+        
+class Editorderview(APIView):
+    permission_classes=[IsAdminUser]
 
-    
+    def patch(self,request,id):
+        try:
+            order=Order.objects.get(id=id)
+        except Order.DoesNotExist:
+            return Response({"message":"Order not found"},status=status.HTTP_400_BAD_REQUEST)
+
+        serializer=EditOrderSerializer(order,data=request.data,partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"updated succesfully"},status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)

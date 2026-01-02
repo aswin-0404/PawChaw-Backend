@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AdminDashboard,Adminuserlistview,AdminUsersuspendview,ProductFetchview,ProductDeactivateView,EditProductView,ProductAddView,OrderFetchview,OrderDeleteView
+from .views import AdminDashboard,Adminuserlistview,AdminUsersuspendview,ProductFetchview,ProductDeactivateView,EditProductView,ProductAddView,OrderFetchview,OrderDeleteView,Editorderview
 
 urlpatterns = [
     path('dashboard/',AdminDashboard.as_view()),
@@ -14,4 +14,5 @@ urlpatterns = [
 
     path('order/',OrderFetchview.as_view()),
     path('order/delete/<int:id>/',OrderDeleteView.as_view()),
+    path('order/edit/<int:id>/',Editorderview.as_view()),
 ]

@@ -43,10 +43,19 @@ class ProductAddSerializer(serializers.ModelSerializer):
 #ordermanagement
 
 class Orderfetchserializer(serializers.Serializer):
-    order_id=serializers.IntegerField()
+    orderid=serializers.IntegerField()
     user_name=serializers.CharField()
     product_name=serializers.CharField()
-    price=serializers.IntegerField()
+    product_price=serializers.IntegerField()
     email=serializers.EmailField()
-    status=serializers.CharField()
+    order_status=serializers.CharField()
     order_date=serializers.DateTimeField()
+    product_quantity = serializers.IntegerField()
+
+class EditOrderSerializer(serializers.Serializer):
+    status=serializers.CharField()
+
+    def update(self,instance,validated_data):
+        instance.status=validated_data.get('status',instance.status)
+        instance.save()
+        return instance
